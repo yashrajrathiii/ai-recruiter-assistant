@@ -1,18 +1,24 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, UserCheck, UserX, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import ResultCard from '@/components/ResultCard';
-import { useAnalysis } from '@/context/AnalysisContext';
+import type { AnalysisResult } from '@/api/runAnalysis';
+
+type LocationState = {
+  analysisResult: AnalysisResult;
+  candidateName?: string;
+  roleTitle?: string;
+};
 
 const DecisionPage = () => {
   const navigate = useNavigate();
-  const { analysisResult, clearAnalysis } = useAnalysis();
+  const location = useLocation();
+  const state = location.state as LocationState | undefined;
   const [decision, setDecision] = useState<'forward' | 'reject' | null>(null);
 
   const handleBack = () => {
-    clearAnalysis();
     navigate('/');
   };
 
@@ -25,7 +31,7 @@ const DecisionPage = () => {
   };
 
   // No analysis result - show empty state
-  if (!analysisResult) {
+  if (!state?.analysisResult) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -46,6 +52,18 @@ const DecisionPage = () => {
       </div>
     );
   }
+
+  const { analysisResult, candidateName, roleTitle } = state;
+
+  // Convert API result to match local AnalysisResult type for ResultCard
+  const formattedResult = {
+    score: analysisResult.score,
+    label: analysisResult.label as "Strong Recommend" | "Consider" | "Weak Fit" | "Not Recommended",
+    summary: analysisResult.summary,
+    matchedSkills: analysisResult.matchedSkills,
+    missingSkills: analysisResult.missingSkills,
+    extraSkills: analysisResult.extraSkills || [],
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,12 +92,15 @@ const DecisionPage = () => {
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
-            Recommendation for This Candidate
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            Recommendation for {candidateName || 'This Candidate'}
           </h1>
+          {roleTitle && (
+            <p className="text-muted-foreground mb-6">Role: {roleTitle}</p>
+          )}
 
           {/* Result Card */}
-          <ResultCard result={analysisResult} />
+          <ResultCard result={formattedResult} />
 
           {/* Decision Section */}
           <div className="mt-8">
