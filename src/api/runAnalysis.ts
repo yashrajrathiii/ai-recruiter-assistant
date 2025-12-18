@@ -19,20 +19,27 @@ export async function runAnalysis(params: {
   recruiterEmail?: string;
   roleTitle?: string;
 }): Promise<AnalysisResult> {
-  const response = await fetch(N8N_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(params),
-  });
+  try {
+    const response = await fetch(N8N_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`n8n error ${response.status}: ${text}`);
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`n8n error ${response.status}: ${text}`);
+    }
+
+    const data = await response.json();
+    // n8n Respond node returns { success, analysisResult }
+    return data.analysisResult as AnalysisResult;
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('Unable to reach n8n webhook. Please ensure CORS is enabled on your n8n webhook and the workflow is active.');
+    }
+    throw error;
   }
-
-  const data = await response.json();
-  // n8n Respond node returns { success, analysisResult }
-  return data.analysisResult as AnalysisResult;
 }
