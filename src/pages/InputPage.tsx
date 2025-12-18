@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Header from '@/components/Header';
-import { useAnalysis } from '@/context/AnalysisContext';
-import { analyzeMatch } from '@/utils/analysis';
+import { runAnalysis } from '@/api/runAnalysis';
 import { useToast } from '@/hooks/use-toast';
 
 const SAMPLE_JD = `We are looking for a Senior Full Stack Developer with expertise in:
@@ -51,7 +50,6 @@ async function extractPdfText(file: File): Promise<string> {
 
 const InputPage = () => {
   const navigate = useNavigate();
-  const { setAnalysisResult } = useAnalysis();
   const { toast } = useToast();
 
   const [jdText, setJdText] = useState('');
@@ -125,17 +123,19 @@ const InputPage = () => {
     setIsAnalyzing(true);
     setErrors({});
 
-    // Simulate a brief delay for UX
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
     try {
-      const result = analyzeMatch(jdText, resumeText);
-      setAnalysisResult(result);
-      navigate('/decision');
+      const analysisResult = await runAnalysis({
+        jobDescription: jdText,
+        resumeText,
+      });
+      
+      navigate('/decision', {
+        state: { analysisResult },
+      });
     } catch (error) {
       toast({
         title: 'Analysis Error',
-        description: 'Something went wrong during analysis. Please try again.',
+        description: error instanceof Error ? error.message : 'Something went wrong during analysis. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -278,7 +278,7 @@ const InputPage = () => {
           {/* Privacy Note */}
           <p className="text-center text-sm text-muted-foreground mt-6">
             <FileText className="w-4 h-4 inline-block mr-1" />
-            All analysis runs locally in your browser. No data is sent to a server.
+            Analysis is powered by AI via n8n webhook.
           </p>
         </div>
       </section>
