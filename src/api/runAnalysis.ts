@@ -35,6 +35,7 @@ export async function runAnalysis(params: {
     }
 
     const data = await response.json();
+    console.log('Raw webhook response:', data);
     
     // n8n returns [{ output: "JSON string" }] format
     let parsed = data;
@@ -42,17 +43,21 @@ export async function runAnalysis(params: {
       parsed = JSON.parse(data[0].output);
     }
     
-    // Handle webhook response - arrays are converted to strings
-    return {
-      candidateName: Array.isArray(parsed.candidateName) ? parsed.candidateName[0] : parsed.candidateName || '',
-      roleTitle: Array.isArray(parsed.roleTitle) ? parsed.roleTitle[0] : parsed.roleTitle || '',
-      score: parsed.score,
-      label: parsed.label,
-      summary: parsed.summary,
+    console.log('Parsed data:', parsed);
+    
+    const result = {
+      candidateName: Array.isArray(parsed.candidateName) ? parsed.candidateName[0] : (parsed.candidateName || ''),
+      roleTitle: Array.isArray(parsed.roleTitle) ? parsed.roleTitle[0] : (parsed.roleTitle || ''),
+      score: parsed.score ?? 0,
+      label: parsed.label || '',
+      summary: parsed.summary || '',
       matchedSkills: parsed.matchedSkills || [],
       missingSkills: parsed.missingSkills || [],
       extraSkills: parsed.extraSkills || [],
     };
+    
+    console.log('Final result:', result);
+    return result;
   } catch (error) {
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       throw new Error('Unable to reach n8n webhook. Please ensure CORS is enabled on your n8n webhook and the workflow is active.');
