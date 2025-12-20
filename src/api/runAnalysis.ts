@@ -1,12 +1,13 @@
 // src/api/runAnalysis.ts
 export type AnalysisResult = {
+  candidateName: string;
+  roleTitle: string;
   score: number;
   label: string;
   summary: string;
   matchedSkills: string[];
   missingSkills: string[];
   extraSkills: string[];
-  moveForward?: boolean;
 };
 
 const N8N_URL = "https://yash-rathi.app.n8n.cloud/webhook/recruit-ai-analyze";
@@ -34,8 +35,18 @@ export async function runAnalysis(params: {
     }
 
     const data = await response.json();
-    // n8n Respond node returns { success, analysisResult }
-    return data.analysisResult as AnalysisResult;
+    
+    // Handle webhook response - arrays are converted to strings
+    return {
+      candidateName: Array.isArray(data.candidateName) ? data.candidateName[0] : data.candidateName || '',
+      roleTitle: Array.isArray(data.roleTitle) ? data.roleTitle[0] : data.roleTitle || '',
+      score: data.score,
+      label: data.label,
+      summary: data.summary,
+      matchedSkills: data.matchedSkills || [],
+      missingSkills: data.missingSkills || [],
+      extraSkills: data.extraSkills || [],
+    };
   } catch (error) {
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       throw new Error('Unable to reach n8n webhook. Please ensure CORS is enabled on your n8n webhook and the workflow is active.');

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface AnalysisResult {
+  candidateName?: string;
+  roleTitle?: string;
   score: number;
   label: "Strong Recommend" | "Consider" | "Weak Fit" | "Not Recommended";
   matchedSkills: string[];

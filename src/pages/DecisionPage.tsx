@@ -8,8 +8,6 @@ import type { AnalysisResult } from '@/api/runAnalysis';
 
 type LocationState = {
   analysisResult: AnalysisResult;
-  candidateName?: string;
-  roleTitle?: string;
 };
 
 const DecisionPage = () => {
@@ -53,7 +51,8 @@ const DecisionPage = () => {
     );
   }
 
-  const { analysisResult, candidateName, roleTitle } = state;
+  const { analysisResult } = state;
+  const { candidateName, roleTitle } = analysisResult;
 
   // Convert API result to match local AnalysisResult type for ResultCard
   const formattedResult = {
