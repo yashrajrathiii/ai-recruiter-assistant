@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, UserCheck, UserX, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, UserCheck, UserX, CheckCircle2, XCircle, User, Briefcase, TrendingUp, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import ResultCard from '@/components/ResultCard';
+import { cn } from '@/lib/utils';
 import type { AnalysisResult } from '@/api/runAnalysis';
 
 type LocationState = {
@@ -64,6 +65,28 @@ const DecisionPage = () => {
     extraSkills: analysisResult.extraSkills || [],
   };
 
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-success bg-success/10 border-success/30';
+    if (score >= 60) return 'text-info bg-info/10 border-info/30';
+    if (score >= 40) return 'text-warning bg-warning/10 border-warning/30';
+    return 'text-destructive bg-destructive/10 border-destructive/30';
+  };
+
+  const getLabelColor = (label: string) => {
+    switch (label) {
+      case 'Strong Recommend':
+        return 'bg-success/10 text-success border-success/30';
+      case 'Consider':
+        return 'bg-info/10 text-info border-info/30';
+      case 'Weak Fit':
+        return 'bg-warning/10 text-warning border-warning/30';
+      case 'Not Recommended':
+        return 'bg-destructive/10 text-destructive border-destructive/30';
+      default:
+        return 'bg-muted text-muted-foreground border-border';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -90,13 +113,67 @@ const DecisionPage = () => {
             <span>HR Decision</span>
           </div>
 
-          {/* Title */}
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Recommendation for {candidateName || 'This Candidate'}
-          </h1>
-          {roleTitle && (
-            <p className="text-muted-foreground mb-6">Role: {roleTitle}</p>
-          )}
+          {/* Candidate Summary Card */}
+          <div className="card-elevated p-6 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Candidate Name */}
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Candidate</p>
+                  <p className="font-semibold text-foreground">{candidateName || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* Role Title */}
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="w-5 h-5 text-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Role</p>
+                  <p className="font-semibold text-foreground">{roleTitle || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* Score */}
+              <div className="flex items-start gap-3">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border",
+                  getScoreColor(analysisResult.score)
+                )}>
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Score</p>
+                  <p className={cn("font-bold text-xl", getScoreColor(analysisResult.score).split(' ')[0])}>
+                    {analysisResult.score}/100
+                  </p>
+                </div>
+              </div>
+
+              {/* Label */}
+              <div className="flex items-start gap-3">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border",
+                  getLabelColor(analysisResult.label)
+                )}>
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Verdict</p>
+                  <span className={cn(
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border",
+                    getLabelColor(analysisResult.label)
+                  )}>
+                    {analysisResult.label}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Result Card */}
           <ResultCard result={formattedResult} />
