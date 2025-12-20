@@ -9,7 +9,7 @@ export type AnalysisResult = {
   moveForward?: boolean;
 };
 
-const N8N_URL = "https://yash-rathi.app.n8n.cloud/webhook-test/recruit-ai-analyze";
+const N8N_URL = "https://yash-rathi.app.n8n.cloud/webhook/recruit-ai-analyze";
 
 export async function runAnalysis(params: {
   jobDescription: string;
