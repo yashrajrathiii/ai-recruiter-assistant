@@ -37,10 +37,16 @@ export async function runAnalysis(params: {
     const data = await response.json();
     console.log('Raw webhook response:', data);
     
-    // n8n returns [{ output: "JSON string" }] format
+    // n8n returns array format - extract the first item
     let parsed = data;
-    if (Array.isArray(data) && data[0]?.output) {
-      parsed = JSON.parse(data[0].output);
+    if (Array.isArray(data) && data.length > 0) {
+      // If first item has output property, parse it as JSON string
+      if (data[0]?.output) {
+        parsed = JSON.parse(data[0].output);
+      } else {
+        // Otherwise, the array contains the result directly
+        parsed = data[0];
+      }
     }
     
     console.log('Parsed data:', parsed);
